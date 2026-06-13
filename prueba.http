@@ -1,0 +1,8 @@
+POST http://localhost:8080/skills
+Content-Type: application/json
+
+{
+  "nombre": "Go",
+  "categoria": "Backend",
+  "prioridad": "Alta"
+}  

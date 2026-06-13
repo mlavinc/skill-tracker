@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:16
+    container_name: skill_db
+    restart: always
+
+    environment:
+      POSTGRES_USER: skilluser
+      POSTGRES_PASSWORD: skillpass
+      POSTGRES_DB: skilldb
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./internal/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skilluser -d skilldb"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+
+    container_name: skill_backend
+    restart: always
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: skilluser
+      DB_PASSWORD: skillpass
+      DB_NAME: skilldb
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: skill_frontend
+    restart: always
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      - backend
+
+
+volumes:
+  pgdata:
