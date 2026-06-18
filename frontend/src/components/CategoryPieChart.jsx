@@ -42,12 +42,13 @@ export default function CategoryPieChart({ skills }) {
           </Pie>
           <Tooltip
             contentStyle={{
-              background: '#1c2130',
-              border: '1px solid rgba(255,255,255,0.12)',
+              background: '#ffffff',
+              border: '1px solid #e2e6f0',
               borderRadius: '10px',
+              color: '#1f2433',
             }}
           />
-          <Legend wrapperStyle={{ color: '#9aa3b8', fontSize: '12px' }} />
+          <Legend wrapperStyle={{ color: '#5a6378', fontSize: '12px' }} />
         </PieChart>
       </ResponsiveContainer>
     </div>

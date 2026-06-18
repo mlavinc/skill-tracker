@@ -21,11 +21,19 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// 🌐 CORS simple (necesario para React)
+// 🌐 CORS parametrizable (necesario para React).
+// El origen permitido se configura con la variable de entorno CORS_ALLOW_ORIGIN.
+// Por defecto "*" para facilitar el desarrollo local; en producción conviene
+// fijarlo al dominio del frontend (p. ej. https://tu-app.vercel.app).
 func enableCORS(next http.HandlerFunc) http.HandlerFunc {
+	allowOrigin := os.Getenv("CORS_ALLOW_ORIGIN")
+	if allowOrigin == "" {
+		allowOrigin = "*"
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 

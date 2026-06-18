@@ -30,27 +30,29 @@ export default function SkillsProgressChart({ skills }) {
     <div className="chart-container">
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(31,36,48,0.08)" />
           <XAxis
             dataKey="name"
-            tick={{ fill: '#9aa3b8', fontSize: 12 }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
+            tick={{ fill: '#5a6378', fontSize: 12 }}
+            axisLine={{ stroke: 'rgba(31,36,48,0.12)' }}
           />
           <YAxis
             domain={[0, 100]}
-            tick={{ fill: '#9aa3b8', fontSize: 12 }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.12)' }}
+            tick={{ fill: '#5a6378', fontSize: 12 }}
+            axisLine={{ stroke: 'rgba(31,36,48,0.12)' }}
           />
           <Tooltip
+            cursor={{ fill: 'rgba(91,110,232,0.08)' }}
             contentStyle={{
-              background: '#1c2130',
-              border: '1px solid rgba(255,255,255,0.12)',
+              background: '#ffffff',
+              border: '1px solid #e2e6f0',
               borderRadius: '10px',
+              color: '#1f2433',
             }}
             labelFormatter={(_, payload) => payload?.[0]?.payload?.fullName ?? ''}
             formatter={(value) => [`${value}%`, 'Progreso']}
           />
-          <Bar dataKey="progreso" fill="#6c8cff" radius={[6, 6, 0, 0]} />
+          <Bar dataKey="progreso" fill="#5b6ee8" radius={[6, 6, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

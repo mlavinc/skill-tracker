@@ -10,7 +10,7 @@ import (
 )
 
 type UserHandler struct {
-	Repo *repository.UserRepository
+	Repo      *repository.UserRepository
 	SkillRepo *repository.SkillRepository
 }
 
@@ -32,20 +32,24 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "Cuerpo de la petición inválido", err)
+		return
+	}
+
+	if strings.TrimSpace(user.Nombre) == "" {
+		respondError(w, http.StatusBadRequest, "El nombre es obligatorio", nil)
 		return
 	}
 
 	id, err := h.Repo.Create(user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudo crear el usuario", err)
 		return
 	}
 
 	user.ID = id
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	respondJSON(w, http.StatusCreated, user)
 }
 
 // GET /users
@@ -53,12 +57,11 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.Repo.GetAll()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudieron obtener los usuarios", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(users)
+	respondJSON(w, http.StatusOK, users)
 }
 
 // GET /users/{id}
@@ -68,97 +71,79 @@ func (h *UserHandler) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "invalid id", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "ID de usuario inválido", err)
 		return
 	}
 
 	user, err := h.Repo.GetByID(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudo obtener el usuario", err)
 		return
 	}
 
 	if user == nil {
-		http.Error(w, "user not found", http.StatusNotFound)
+		respondError(w, http.StatusNotFound, "Usuario no encontrado", nil)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	respondJSON(w, http.StatusOK, user)
 }
-func (h *UserHandler) GetUserSkills(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+
+func (h *UserHandler) GetUserSkills(w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(r.URL.Path, "/")
 
 	if len(parts) < 4 {
-		http.Error(w, "invalid url", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "URL inválida", nil)
 		return
 	}
 
 	userID, err := strconv.Atoi(parts[2])
 	if err != nil {
-		http.Error(w, "invalid user id", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "ID de usuario inválido", err)
 		return
 	}
 
 	skills, err := h.SkillRepo.GetByUserID(userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudieron obtener las skills del usuario", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(skills)
+	respondJSON(w, http.StatusOK, skills)
 }
-func (h *UserHandler) GetUserStats(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+
+func (h *UserHandler) GetUserStats(w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(r.URL.Path, "/")
 
 	if len(parts) < 4 {
-		http.Error(w, "invalid url", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "URL inválida", nil)
 		return
 	}
 
 	userID, err := strconv.Atoi(parts[2])
 	if err != nil {
-		http.Error(w, "invalid user id", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "ID de usuario inválido", err)
 		return
 	}
 
 	stats, err := h.Repo.GetStats(userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudieron obtener las estadísticas", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(stats)
+	respondJSON(w, http.StatusOK, stats)
 }
-func (h *UserHandler) GetRanking(
-	w http.ResponseWriter,
-	r *http.Request,
-) {
+
+func (h *UserHandler) GetRanking(w http.ResponseWriter, r *http.Request) {
 
 	ranking, err := h.Repo.GetRanking()
 	if err != nil {
-		http.Error(
-			w,
-			err.Error(),
-			http.StatusInternalServerError,
-		)
+		respondError(w, http.StatusInternalServerError, "No se pudo obtener el ranking", err)
 		return
 	}
 
-	w.Header().Set(
-		"Content-Type",
-		"application/json",
-	)
-
-	json.NewEncoder(w).Encode(ranking)
+	respondJSON(w, http.StatusOK, ranking)
 }

@@ -1,0 +1,32 @@
+# Git
+.git
+.gitignore
+
+# Node / frontend (no se usan en el build del backend)
+frontend/node_modules
+frontend/dist
+node_modules
+
+# Go build artifacts
+server
+*.exe
+*.test
+*.out
+
+# Env y secretos
+.env
+.env.*
+!.env.example
+
+# Docker local data
+.pgdata
+pgdata
+
+# Docs / misc
+*.md
+prueba.http
+
+# Editor / OS
+.DS_Store
+.idea
+.vscode

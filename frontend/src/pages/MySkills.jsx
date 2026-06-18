@@ -4,9 +4,11 @@ import EditSkillModal from '../components/EditSkillModal';
 import EmptyState from '../components/EmptyState';
 import ErrorMessage from '../components/ErrorMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
+import SessionModal from '../components/SessionModal';
 import SkillCard from '../components/SkillCard';
 import { useUser } from '../context/UserContext';
 import { useSkills } from '../hooks/useSkills';
+import { api } from '../services/api';
 
 export default function MySkills() {
   const { user } = useUser();
@@ -21,8 +23,10 @@ export default function MySkills() {
 
   const [editingSkill, setEditingSkill] = useState(null);
   const [deletingSkill, setDeletingSkill] = useState(null);
+  const [sessionSkill, setSessionSkill] = useState(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [submittingSession, setSubmittingSession] = useState(false);
 
   const handleSave = async (payload) => {
     setSaving(true);
@@ -41,6 +45,18 @@ export default function MySkills() {
       setDeletingSkill(null);
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleAddSession = async (payload) => {
+    if (!sessionSkill) return;
+    setSubmittingSession(true);
+    try {
+      await api.createSession(sessionSkill.id, payload);
+      await fetchSkills();
+      setSessionSkill(null);
+    } finally {
+      setSubmittingSession(false);
     }
   };
 
@@ -75,10 +91,19 @@ export default function MySkills() {
               skill={skill}
               onEdit={setEditingSkill}
               onDelete={setDeletingSkill}
+              onAddSession={setSessionSkill}
             />
           ))}
         </div>
       )}
+
+      <SessionModal
+        skill={sessionSkill}
+        open={Boolean(sessionSkill)}
+        onClose={() => setSessionSkill(null)}
+        onSubmit={handleAddSession}
+        submitting={submittingSession}
+      />
 
       <EditSkillModal
         skill={editingSkill}

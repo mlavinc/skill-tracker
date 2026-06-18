@@ -8,13 +8,14 @@ import EmptyState from '../components/EmptyState';
 import ErrorMessage from '../components/ErrorMessage';
 import LeaderboardWidget from '../components/LeaderboardWidget';
 import LoadingSpinner from '../components/LoadingSpinner';
+import SessionModal from '../components/SessionModal';
 import SkillCard from '../components/SkillCard';
 import SkillForm from '../components/SkillForm';
 import SkillsProgressChart from '../components/SkillsProgressChart';
-import StatsBar from '../components/StatsBar';
 import { useUser } from '../context/UserContext';
-import { useDashboardStats, useSkills } from '../hooks/useSkills';
+import { useSkills } from '../hooks/useSkills';
 import { useRanking, useUserStats } from '../hooks/useUsers';
+import { api } from '../services/api';
 
 export default function Dashboard() {
   const { user } = useUser();
@@ -28,7 +29,6 @@ export default function Dashboard() {
     deleteSkill,
   } = useSkills(user?.id);
 
-  const legacyStats = useDashboardStats(skills);
   const {
     stats: userStats,
     loading: statsLoading,
@@ -44,9 +44,11 @@ export default function Dashboard() {
 
   const [editingSkill, setEditingSkill] = useState(null);
   const [deletingSkill, setDeletingSkill] = useState(null);
+  const [sessionSkill, setSessionSkill] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [submittingSession, setSubmittingSession] = useState(false);
 
   const handleCreate = async (payload) => {
     setSubmitting(true);
@@ -76,6 +78,19 @@ export default function Dashboard() {
       // Error handled by parent if needed; keep dialog open
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleAddSession = async (payload) => {
+    if (!sessionSkill) return;
+    setSubmittingSession(true);
+    try {
+      await api.createSession(sessionSkill.id, payload);
+      await fetchSkills();
+      await fetchStats();
+      setSessionSkill(null);
+    } finally {
+      setSubmittingSession(false);
     }
   };
 
@@ -119,8 +134,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <StatsBar {...legacyStats} />
-
       <div className="dashboard__layout">
         <section className="dashboard__form">
           <SkillForm onSubmit={handleCreate} submitting={submitting} />
@@ -154,12 +167,21 @@ export default function Dashboard() {
                   skill={skill}
                   onEdit={setEditingSkill}
                   onDelete={setDeletingSkill}
+                  onAddSession={setSessionSkill}
                 />
               ))}
             </div>
           )}
         </section>
       </div>
+
+      <SessionModal
+        skill={sessionSkill}
+        open={Boolean(sessionSkill)}
+        onClose={() => setSessionSkill(null)}
+        onSubmit={handleAddSession}
+        submitting={submittingSession}
+      />
 
       <EditSkillModal
         skill={editingSkill}

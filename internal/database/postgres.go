@@ -52,9 +52,11 @@ func Connect() (*sql.DB, error) {
 		return nil, fmt.Errorf("❌ could not connect to database after retries: %w", err)
 	}
 
-	// Pool tuning (IMPORTANT for cloud)
-	db.SetMaxOpenConns(25)
-	db.SetMaxIdleConns(25)
+	// Pool tuning conservador, compatible con planes gratuitos
+	// (Neon Free limita el número de conexiones simultáneas).
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
 
 	fmt.Println("✅ Connected to PostgreSQL!")
 	return db, nil

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+dist/
+frontend/dist/
+
+# Go binaries
+server
+*.exe
+*.test
+*.out
+
+# Environment variables (NEVER commit secrets)
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Logs
+*.log
+
+# Docker local data
+.pgdata/
+pgdata/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/

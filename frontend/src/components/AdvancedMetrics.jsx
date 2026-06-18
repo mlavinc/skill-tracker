@@ -16,8 +16,14 @@ export default function AdvancedMetrics({ stats, skills }) {
   const mostAdvanced = sortedByProgress[0];
   const leastWorked = sortedByProgress[sortedByProgress.length - 1];
   const activeCount = skills.filter(isActiveSkill).length;
+  const completedCount = skills.filter((s) => (s.progreso ?? 0) >= 100).length;
 
   const metrics = [
+    {
+      label: 'Skills completadas',
+      value: completedCount,
+      hint: `De ${skills.length} skills totales`,
+    },
     {
       label: 'Horas totales',
       value: `${formatHours(totalMinutes)} h`,

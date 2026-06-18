@@ -20,66 +20,65 @@ func NewSkillHandler(repo *repository.SkillRepository) *SkillHandler {
 // POST /skills
 func (h *SkillHandler) CreateSkill(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Content-Type", "application/json")
-
 	var skill models.Skill
 
-	// Decode request body
 	err := json.NewDecoder(r.Body).Decode(&skill)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "Cuerpo de la petición inválido", err)
 		return
 	}
 
-	// Insert into DB and get complete skill (with ID + fecha)
+	if strings.TrimSpace(skill.Nombre) == "" {
+		respondError(w, http.StatusBadRequest, "El nombre es obligatorio", nil)
+		return
+	}
+
 	createdSkill, err := h.Repo.Create(skill)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudo crear la skill", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(createdSkill)
+	respondJSON(w, http.StatusCreated, createdSkill)
 }
-func (h *SkillHandler) GetSkills(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Content-Type", "application/json")
+func (h *SkillHandler) GetSkills(w http.ResponseWriter, r *http.Request) {
 
 	skills, err := h.Repo.GetAll()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudieron obtener las skills", err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(skills)
+	respondJSON(w, http.StatusOK, skills)
 }
-func (h *SkillHandler) GetSkillByID(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Content-Type", "application/json")
+func (h *SkillHandler) GetSkillByID(w http.ResponseWriter, r *http.Request) {
 
 	idStr := strings.TrimPrefix(r.URL.Path, "/skills/")
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "invalid skill id", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "ID de skill inválido", err)
 		return
 	}
 
 	skill, err := h.Repo.GetByID(id)
 	if err != nil {
-		http.Error(w, "skill not found", http.StatusNotFound)
+		respondError(w, http.StatusNotFound, "Skill no encontrada", err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(skill)
+	respondJSON(w, http.StatusOK, skill)
 }
+
 func (h *SkillHandler) UpdateSkill(w http.ResponseWriter, r *http.Request) {
 
 	idStr := strings.TrimPrefix(r.URL.Path, "/skills/")
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "invalid skill id", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "ID de skill inválido", err)
 		return
 	}
 
@@ -87,7 +86,12 @@ func (h *SkillHandler) UpdateSkill(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewDecoder(r.Body).Decode(&skill)
 	if err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "Cuerpo de la petición inválido", err)
+		return
+	}
+
+	if strings.TrimSpace(skill.Nombre) == "" {
+		respondError(w, http.StatusBadRequest, "El nombre es obligatorio", nil)
 		return
 	}
 
@@ -95,26 +99,26 @@ func (h *SkillHandler) UpdateSkill(w http.ResponseWriter, r *http.Request) {
 
 	err = h.Repo.Update(skill)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudo actualizar la skill", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(skill)
+	respondJSON(w, http.StatusOK, skill)
 }
+
 func (h *SkillHandler) DeleteSkill(w http.ResponseWriter, r *http.Request) {
 
 	idStr := strings.TrimPrefix(r.URL.Path, "/skills/")
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		http.Error(w, "invalid skill id", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "ID de skill inválido", err)
 		return
 	}
 
 	err = h.Repo.Delete(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudo eliminar la skill", err)
 		return
 	}
 

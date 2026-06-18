@@ -1,4 +1,5 @@
 package handlers
+
 import (
 	"encoding/json"
 	"net/http"
@@ -7,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 )
+
 type SessionHandler struct {
 	Repo *repository.SessionRepository
 }
@@ -21,13 +23,13 @@ func (h *SessionHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
 	// extraer skill_id desde URL manual routing
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 4 {
-		http.Error(w, "invalid url", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "URL inválida", nil)
 		return
 	}
 
 	skillID, err := strconv.Atoi(parts[2])
 	if err != nil {
-		http.Error(w, "invalid skill id", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "ID de skill inválido", err)
 		return
 	}
 
@@ -35,7 +37,17 @@ func (h *SessionHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewDecoder(r.Body).Decode(&session)
 	if err != nil {
-		http.Error(w, "invalid body", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "Cuerpo de la petición inválido", err)
+		return
+	}
+
+	if session.DuracionMinutos <= 0 {
+		respondError(w, http.StatusBadRequest, "La duración debe ser mayor a 0 minutos", nil)
+		return
+	}
+
+	if session.ProgresoPercibido < 0 || session.ProgresoPercibido > 100 {
+		respondError(w, http.StatusBadRequest, "El progreso percibido debe estar entre 0 y 100", nil)
 		return
 	}
 
@@ -43,35 +55,34 @@ func (h *SessionHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
 
 	id, err := h.Repo.Create(session)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudo registrar la sesión", err)
 		return
 	}
 
 	session.ID = id
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(session)
+	respondJSON(w, http.StatusCreated, session)
 }
+
 func (h *SessionHandler) GetSessionsBySkill(w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 3 {
-		http.Error(w, "invalid url", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "URL inválida", nil)
 		return
 	}
 
 	skillID, err := strconv.Atoi(parts[2])
 	if err != nil {
-		http.Error(w, "invalid skill id", http.StatusBadRequest)
+		respondError(w, http.StatusBadRequest, "ID de skill inválido", err)
 		return
 	}
 
 	sessions, err := h.Repo.GetBySkillID(skillID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		respondError(w, http.StatusInternalServerError, "No se pudieron obtener las sesiones", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(sessions)
+	respondJSON(w, http.StatusOK, sessions)
 }

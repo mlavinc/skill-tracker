@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import ProgressBar from './ProgressBar';
 import { formatDate, priorityClass, statusClass } from '../utils/format';
 
-export default function SkillCard({ skill, onEdit, onDelete }) {
+export default function SkillCard({ skill, onEdit, onDelete, onAddSession }) {
   return (
     <article className="skill-card">
       <div className="skill-card__header">
@@ -27,7 +27,16 @@ export default function SkillCard({ skill, onEdit, onDelete }) {
       </p>
 
       <div className="skill-card__actions">
-        <Link to={`/skills/${skill.id}`} className="btn btn--primary btn--sm">
+        {onAddSession && (
+          <button
+            type="button"
+            className="btn btn--primary btn--sm"
+            onClick={() => onAddSession(skill)}
+          >
+            + Registrar sesión
+          </button>
+        )}
+        <Link to={`/skills/${skill.id}`} className="btn btn--ghost btn--sm">
           Ver detalle
         </Link>
         <button

@@ -21,11 +21,12 @@ func (r *SessionRepository) Create(session models.SessionPractice) (int, error) 
 	query := `
 		INSERT INTO sesiones_practica (
 			skill_id,
+			fecha,
 			duracion_minutos,
 			notas,
 			progreso_percibido
 		)
-		VALUES ($1, $2, $3, $4)
+		VALUES ($1, NOW(), $2, $3, $4)
 		RETURNING id
 	`
 
@@ -62,7 +63,7 @@ func (r *SessionRepository) UpdateSkillProgress(
 	query := `
 		UPDATE skills
 		SET
-			progreso = progreso + $1,
+			progreso = LEAST(100, GREATEST(0, COALESCE(progreso, 0) + $1)),
 			ultima_practica = CURRENT_DATE
 		WHERE id = $2
 	`
@@ -83,10 +84,10 @@ func (r *SessionRepository) GetBySkillID(skillID int) ([]models.SessionPractice,
 		SELECT
 			id,
 			skill_id,
-			fecha,
-			duracion_minutos,
-			notas,
-			progreso_percibido
+			COALESCE(fecha, NOW()) AS fecha,
+			COALESCE(duracion_minutos, 0) AS duracion_minutos,
+			COALESCE(notas, '') AS notas,
+			COALESCE(progreso_percibido, 0) AS progreso_percibido
 		FROM sesiones_practica
 		WHERE skill_id = $1
 		ORDER BY fecha DESC
