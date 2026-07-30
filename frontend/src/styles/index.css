@@ -456,30 +456,34 @@ p {
 .btn--primary {
   background: var(--primary);
   color: white;
+  border-color: var(--primary-hover);
 }
 
 .btn--primary:hover:not(:disabled) {
   background: var(--primary-hover);
+  border-color: #3f4fc4;
 }
 
 .btn--ghost {
-  background: transparent;
-  border-color: var(--border);
+  background: var(--bg-card);
+  border-color: var(--border-strong);
   color: var(--text);
 }
 
 .btn--ghost:hover:not(:disabled) {
   background: var(--bg-hover);
+  border-color: var(--text-muted);
 }
 
 .btn--danger {
   background: rgba(229, 112, 126, 0.14);
   color: var(--danger-strong);
-  border-color: rgba(229, 112, 126, 0.3);
+  border-color: rgba(192, 65, 79, 0.55);
 }
 
 .btn--danger:hover:not(:disabled) {
   background: rgba(229, 112, 126, 0.24);
+  border-color: var(--danger-strong);
 }
 
 .btn--sm {
