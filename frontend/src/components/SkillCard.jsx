@@ -39,20 +39,24 @@ export default function SkillCard({ skill, onEdit, onDelete, onAddSession }) {
         <Link to={`/skills/${skill.id}`} className="btn btn--ghost btn--sm">
           Ver detalle
         </Link>
-        <button
-          type="button"
-          className="btn btn--ghost btn--sm"
-          onClick={() => onEdit(skill)}
-        >
-          Editar
-        </button>
-        <button
-          type="button"
-          className="btn btn--danger btn--sm"
-          onClick={() => onDelete(skill)}
-        >
-          Eliminar
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            className="btn btn--ghost btn--sm"
+            onClick={() => onEdit(skill)}
+          >
+            Editar
+          </button>
+        )}
+        {onDelete && (
+          <button
+            type="button"
+            className="btn btn--danger btn--sm"
+            onClick={() => onDelete(skill)}
+          >
+            Eliminar
+          </button>
+        )}
       </div>
     </article>
   );

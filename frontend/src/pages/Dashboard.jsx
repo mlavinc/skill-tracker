@@ -1,33 +1,42 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import AdvancedMetrics from '../components/AdvancedMetrics';
 import CategoryPieChart from '../components/CategoryPieChart';
-import ConfirmDialog from '../components/ConfirmDialog';
 import DashboardKPIs from '../components/DashboardKPIs';
-import EditSkillModal from '../components/EditSkillModal';
 import EmptyState from '../components/EmptyState';
 import ErrorMessage from '../components/ErrorMessage';
 import LeaderboardWidget from '../components/LeaderboardWidget';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SessionModal from '../components/SessionModal';
 import SkillCard from '../components/SkillCard';
-import SkillForm from '../components/SkillForm';
 import SkillsProgressChart from '../components/SkillsProgressChart';
 import { useUser } from '../context/UserContext';
 import { useSkills } from '../hooks/useSkills';
 import { useRanking, useUserStats } from '../hooks/useUsers';
 import { api } from '../services/api';
 
+const FEATURED_LIMIT = 3;
+
+function practiceTimestamp(skill) {
+  const raw = skill?.ultima_practica;
+  if (!raw || String(raw).startsWith('0001-01-01')) return 0;
+  const time = new Date(raw).getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function getFeaturedSkills(skills, limit = FEATURED_LIMIT) {
+  return [...skills]
+    .sort((a, b) => {
+      const byPractice = practiceTimestamp(b) - practiceTimestamp(a);
+      if (byPractice !== 0) return byPractice;
+      return (b.progreso ?? 0) - (a.progreso ?? 0);
+    })
+    .slice(0, limit);
+}
+
 export default function Dashboard() {
   const { user } = useUser();
-  const {
-    skills,
-    loading,
-    error,
-    fetchSkills,
-    createSkill,
-    updateSkill,
-    deleteSkill,
-  } = useSkills(user?.id);
+  const { skills, loading, error, fetchSkills } = useSkills(user?.id);
 
   const {
     stats: userStats,
@@ -42,44 +51,13 @@ export default function Dashboard() {
     fetchRanking,
   } = useRanking();
 
-  const [editingSkill, setEditingSkill] = useState(null);
-  const [deletingSkill, setDeletingSkill] = useState(null);
   const [sessionSkill, setSessionSkill] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [submittingSession, setSubmittingSession] = useState(false);
 
-  const handleCreate = async (payload) => {
-    setSubmitting(true);
-    try {
-      await createSkill(payload);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleSave = async (payload) => {
-    setSaving(true);
-    try {
-      await updateSkill(payload.id, payload);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deletingSkill) return;
-    setDeleting(true);
-    try {
-      await deleteSkill(deletingSkill.id);
-      setDeletingSkill(null);
-    } catch {
-      // Error handled by parent if needed; keep dialog open
-    } finally {
-      setDeleting(false);
-    }
-  };
+  const featuredSkills = useMemo(
+    () => getFeaturedSkills(skills, FEATURED_LIMIT),
+    [skills]
+  );
 
   const handleAddSession = async (payload) => {
     if (!sessionSkill) return;
@@ -96,18 +74,27 @@ export default function Dashboard() {
 
   return (
     <div className="page dashboard">
-      <section className="page-header">
+      <section className="page-header page-header--split">
         <div>
-          <h1>Dashboard</h1>
+          <h1>Hola, {user?.nombre}</h1>
           <p>
-            Hola, <strong style={{ color: user?.color }}>{user?.nombre}</strong>.
-            Visualiza y gestiona todas tus habilidades en un solo lugar.
+            Resumen de tu progreso y actividad reciente.
+            Gestiona el detalle en{' '}
+            <Link to="/skills">Mis Skills</Link>.
           </p>
+        </div>
+        <div className="page-header__actions">
+          <Link to="/skills/nueva" className="btn btn--primary btn--sm">
+            Nueva skill
+          </Link>
+          <Link to="/skills" className="btn btn--ghost btn--sm">
+            Ver todas
+          </Link>
         </div>
       </section>
 
-      <section className="dashboard-analytics">
-        <h2 className="dashboard-analytics__title">Resumen avanzado</h2>
+      <section className="dashboard-analytics" aria-label="Resumen de progreso">
+        <h2 className="dashboard-analytics__title">Tu progreso</h2>
         {statsError && <ErrorMessage message={statsError} onRetry={fetchStats} />}
         <DashboardKPIs stats={userStats} loading={statsLoading} />
         <AdvancedMetrics stats={userStats} skills={skills} />
@@ -134,46 +121,47 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <div className="dashboard__layout">
-        <section className="dashboard__form">
-          <SkillForm onSubmit={handleCreate} submitting={submitting} />
-        </section>
+      <section className="dashboard-featured" aria-label="Actividad reciente">
+        <div className="section-header">
+          <h2>Actividad reciente</h2>
+          {skills.length > 0 && (
+            <Link to="/skills" className="section-header__link">
+              Ver todas ({skills.length})
+            </Link>
+          )}
+        </div>
 
-        <section className="dashboard__list">
-          <div className="section-header">
-            <h2>Mis skills</h2>
-            <span className="section-header__count">{skills.length}</span>
+        {loading && <LoadingSpinner label="Cargando skills..." />}
+
+        {!loading && error && (
+          <ErrorMessage message={error} onRetry={fetchSkills} />
+        )}
+
+        {!loading && !error && skills.length === 0 && (
+          <EmptyState
+            icon="🚀"
+            title="Aún no tienes skills"
+            description="Crea tu primera skill para empezar a trackear tu progreso."
+            action={
+              <Link to="/skills/nueva" className="btn btn--primary btn--sm">
+                Crear skill
+              </Link>
+            }
+          />
+        )}
+
+        {!loading && !error && featuredSkills.length > 0 && (
+          <div className="skill-grid">
+            {featuredSkills.map((skill) => (
+              <SkillCard
+                key={skill.id}
+                skill={skill}
+                onAddSession={setSessionSkill}
+              />
+            ))}
           </div>
-
-          {loading && <LoadingSpinner label="Cargando skills..." />}
-
-          {!loading && error && (
-            <ErrorMessage message={error} onRetry={fetchSkills} />
-          )}
-
-          {!loading && !error && skills.length === 0 && (
-            <EmptyState
-              icon="🚀"
-              title="Aún no tienes skills"
-              description="Crea tu primera skill con el formulario de la izquierda para empezar a trackear tu progreso."
-            />
-          )}
-
-          {!loading && !error && skills.length > 0 && (
-            <div className="skill-grid">
-              {skills.map((skill) => (
-                <SkillCard
-                  key={skill.id}
-                  skill={skill}
-                  onEdit={setEditingSkill}
-                  onDelete={setDeletingSkill}
-                  onAddSession={setSessionSkill}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+        )}
+      </section>
 
       <SessionModal
         skill={sessionSkill}
@@ -181,24 +169,6 @@ export default function Dashboard() {
         onClose={() => setSessionSkill(null)}
         onSubmit={handleAddSession}
         submitting={submittingSession}
-      />
-
-      <EditSkillModal
-        skill={editingSkill}
-        open={Boolean(editingSkill)}
-        onClose={() => setEditingSkill(null)}
-        onSave={handleSave}
-        saving={saving}
-      />
-
-      <ConfirmDialog
-        open={Boolean(deletingSkill)}
-        title="Eliminar skill"
-        message={`¿Seguro que quieres eliminar "${deletingSkill?.nombre}"? Esta acción no se puede deshacer.`}
-        confirmLabel="Eliminar"
-        onConfirm={handleDelete}
-        onCancel={() => setDeletingSkill(null)}
-        loading={deleting}
       />
     </div>
   );

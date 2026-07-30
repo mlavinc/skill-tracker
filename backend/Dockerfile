@@ -15,8 +15,14 @@ FROM alpine:latest
 
 WORKDIR /app
 
+# CA certificates required for TLS to managed Postgres (e.g. Neon).
+RUN apk add --no-cache ca-certificates \
+    && update-ca-certificates
+
 COPY --from=builder /app/server /app/server
 
 RUN chmod +x /app/server
+
+EXPOSE 8080
 
 CMD ["/app/server"]

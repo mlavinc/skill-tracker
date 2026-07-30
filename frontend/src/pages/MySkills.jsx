@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EditSkillModal from '../components/EditSkillModal';
 import EmptyState from '../components/EmptyState';
@@ -62,10 +63,15 @@ export default function MySkills() {
 
   return (
     <div className="page">
-      <section className="page-header">
+      <section className="page-header page-header--split">
         <div>
           <h1>Mis Skills</h1>
           <p>Gestiona todas tus habilidades de aprendizaje.</p>
+        </div>
+        <div className="page-header__actions">
+          <Link to="/skills/nueva" className="btn btn--primary btn--sm">
+            Nueva skill
+          </Link>
         </div>
       </section>
 
@@ -79,7 +85,12 @@ export default function MySkills() {
         <EmptyState
           icon="🚀"
           title="Aún no tienes skills"
-          description="Ve a Nueva Skill para crear tu primera habilidad."
+          description="Crea tu primera habilidad para empezar a trackear tu progreso."
+          action={
+            <Link to="/skills/nueva" className="btn btn--primary btn--sm">
+              Crear skill
+            </Link>
+          }
         />
       )}
 

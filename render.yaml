@@ -1,0 +1,25 @@
+# Render Blueprint — Skill Tracker backend
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Deploy: connect this repo in Render and apply the Blueprint,
+# or create a Web Service manually with the same settings.
+#
+# Required env vars (set in the Render dashboard; do not commit secrets):
+#   DATABASE_URL          — Neon connection string (sslmode=require)
+#   CORS_ALLOW_ORIGIN     — Vercel frontend origin, e.g. https://your-app.vercel.app
+#
+# Do NOT set PORT — Render injects it automatically.
+
+services:
+  - type: web
+    name: skill-tracker-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ALLOW_ORIGIN
+        sync: false
