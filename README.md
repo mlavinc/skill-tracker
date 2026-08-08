@@ -1,200 +1,109 @@
 # Skill Tracker
 
-Full-stack application for tracking skills, practice sessions, and progress.
+Full-stack app for tracking skills, practice sessions, and progress over time.
 
----
+Instead of scattering notes across tools, you pick a user, manage skills, log practice, and see stats and ranking in one dashboard. The interesting part is the split: a Go REST API and React SPA that run the same way locally with Docker Compose and in production on Vercel, Render, and Neon.
+
+## Features
+
+- Multi-user profiles with client-side active-user selection (`localStorage`)
+- Skill CRUD with category, priority, status, and progress (0–100)
+- Practice sessions that update skill progress and last-practiced date
+- Dashboard with KPIs, Recharts visualizations, and a user ranking
+- One-command local stack via Docker Compose
+- Cloud-ready deploy: static frontend, containerized API, managed Postgres
+
+## Architecture
+
+```text
+Local:   Browser → Nginx (SPA + API proxy) → Go API → PostgreSQL
+Cloud:   Browser → Vercel (React) → Render (Go API) → Neon PostgreSQL
+```
+
+Backend layout:
+
+```text
+HTTP (net/http) → handlers → repositories → PostgreSQL
+```
+
+Domain model: `users` → `skills` → `sesiones_practica`. Schema lives in `internal/database/init.sql` (applied automatically by Compose; apply manually on Neon).
+
+There is no HTTP authentication. Identity is the selected user stored in the browser — enough for a portfolio demo, not for private multi-tenant use.
+
+## Technical Highlights
+
+- **Layered Go API.** Handlers own HTTP and validation; repositories own SQL. Models are plain domain structs shared across both.
+- **Progress as a write-side effect.** Creating a session inserts into `sesiones_practica` and updates the skill’s `progreso` / `ultima_practica` in the same repository path.
+- **Env-driven DB connection.** Prefers `DATABASE_URL` (Neon/Render); falls back to `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` for local Compose. Retries on startup and uses a small connection pool.
+- **CORS and port from env.** `CORS_ALLOW_ORIGIN` (default `*`) and `PORT` (default `8080`) so the same binary works locally and on Render.
+- **Dockerized API for production.** Multi-stage build produces a static Go binary on Alpine with CA certificates for TLS to managed Postgres. `render.yaml` defines the Web Service blueprint.
+- **Local/cloud parity without coupling.** Compose proxies API routes through Nginx; production sets `VITE_API_URL` at build time and talks to Render directly.
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React + Vite (+ Nginx in local Docker) |
-| Backend | Go (`net/http`) |
-| Database | PostgreSQL |
-| Local orchestration | Docker + Docker Compose |
-| Cloud (recommended) | Vercel + Render + Neon |
+**Backend**
+Go 1.23 · `net/http` · `database/sql` · [lib/pq](https://github.com/lib/pq)
 
----
+**Frontend**
+React 19 · Vite 6 · React Router · Recharts
 
-## Project Structure
+**Data & infra**
+PostgreSQL 16 · Docker / Docker Compose · Nginx (local SPA) · Vercel · Render · Neon
 
-```
-skill-tracker/
-├── backend/
-│   └── Dockerfile          # Go API image (used by Render)
-├── cmd/server/             # API entrypoint
-├── frontend/               # React + Vite (deploy to Vercel)
-│   ├── Dockerfile          # Nginx image (local Compose only)
-│   └── vercel.json
-├── internal/
-│   └── database/init.sql   # Schema (Compose init + apply on Neon)
-├── docker-compose.yml      # Local: db + backend + frontend
-├── render.yaml             # Render Blueprint for the API
-└── README.md
-```
+## Getting Started
 
----
+### Prerequisites
 
-## Run Locally
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
 
-Make sure you have Docker installed, then run:
+### Run
 
 ```bash
 docker compose up --build
 ```
 
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8080 |
-| Database | localhost:5432 |
+| Service   | URL                     |
+| --------- | ----------------------- |
+| Frontend  | http://localhost:3000   |
+| API       | http://localhost:8080   |
+| Postgres  | localhost:5432          |
 
-**Stop containers:**
+Health check: `GET http://localhost:8080/health` → `{"status":"ok"}`.
 
-```bash
-docker compose down
-```
-
-**Reset database:**
+Stop / reset:
 
 ```bash
-docker compose down -v
+docker compose down        # stop
+docker compose down -v     # stop and wipe the DB volume
 ```
 
-### Local env (optional, without Compose)
+### Without Compose (optional)
 
-Copy `.env.example` → `.env` (backend) and `frontend/.env.example` → `frontend/.env`.  
-With Vite alone, leave `VITE_API_URL` empty so the proxy in `vite.config.js` targets `localhost:8080`.
+1. Run PostgreSQL and apply `internal/database/init.sql`.
+2. Copy `.env.example` → `.env` and set the `DB_*` variables (or `DATABASE_URL`).
+3. From the repo root: `go run ./cmd/server`
+4. Copy `frontend/.env.example` → `frontend/.env`, leave `VITE_API_URL` empty, then:
 
----
-
-## Database Schema
-
-Schema file: `internal/database/init.sql`
-
-### `users`
-
-| Column | |
-|---|---|
-| `id` | |
-| `nombre` | |
-| `color` | |
-| `creado_en` | |
-
-### `skills`
-
-| Column | |
-|---|---|
-| `id` | |
-| `nombre` | |
-| `categoria` | |
-| `prioridad` | |
-| `estado` | |
-| `notas` | |
-| `ultima_practica` | |
-| `progreso` | |
-| `user_id` | |
-
-### `sesiones_practica`
-
-| Column | |
-|---|---|
-| `id` | |
-| `skill_id` | |
-| `fecha` | |
-| `duracion_minutos` | |
-| `notas` | |
-| `progreso_percibido` | |
-
----
-
-## Cloud Deploy (Vercel + Render + Neon)
-
-Target architecture:
-
-```
-Browser
-  → Vercel (React static frontend)
-      → Render (Go API, Docker Web Service)
-          → Neon PostgreSQL
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-Deploy in this order so URLs and CORS line up.
+Vite proxies `/users`, `/skills`, `/ranking`, and `/health` to `localhost:8080`.
 
-### 1. Neon (database)
+### Production sketch
 
-1. Create a Neon project and database.
-2. Copy the connection string (include `sslmode=require`; prefer the **pooled** URL on the free tier).
-3. In the Neon SQL Editor, run the contents of `internal/database/init.sql` (Compose does this automatically locally; Neon does not).
+Deploy order: Neon (run `init.sql`) → Render API (`DATABASE_URL`, `CORS_ALLOW_ORIGIN`; do not set `PORT`) → Vercel frontend (root `frontend`, build-time `VITE_API_URL`). Blueprint: `render.yaml`.
 
-### 2. Render (backend API)
+## Demo
 
-Blueprint: `render.yaml` (Docker Web Service, build context = repo root, Dockerfile = `backend/Dockerfile`, health check = `/health`).
+Live UI: [skill-tracker-kappa.vercel.app](https://skill-tracker-kappa.vercel.app/)
 
-1. Connect the GitHub repo in Render and apply the Blueprint, **or** create a Web Service manually:
-   - Runtime: **Docker**
-   - Dockerfile path: `./backend/Dockerfile`
-   - Docker build context: repository root (`.`)
-   - Health check path: `/health`
-2. Set environment variables in the Render dashboard (do **not** commit secrets):
+Create or select a user, add a skill, log a practice session, and check the dashboard / ranking. The API may be cold on Render’s free tier — the first request can take a few seconds.
 
-   | Variable | Value |
-   |---|---|
-   | `DATABASE_URL` | Neon connection string |
-   | `CORS_ALLOW_ORIGIN` | Exact Vercel origin, e.g. `https://your-app.vercel.app` |
+## Case Study
 
-   Do **not** set `PORT` — Render injects it.
-3. Deploy and verify: `GET https://<your-service>.onrender.com/health` → `{"status":"ok"}`.
+Architecture decisions, trade-offs, and product framing:
 
-Notes:
-
-- The API image includes CA certificates so TLS to Neon works from Alpine.
-- On the free plan the service may sleep; the first request after idle can be slow.
-
-### 3. Vercel (frontend)
-
-1. Import the repo in Vercel.
-2. Set **Root Directory** to `frontend`.
-3. Framework: Vite — Build: `npm run build` — Output: `dist`.
-4. Environment variable (**Production**, required at **build** time):
-
-   | Variable | Value |
-   |---|---|
-   | `VITE_API_URL` | Public Render URL, e.g. `https://skill-tracker-api.onrender.com` (no trailing slash) |
-
-5. Deploy. SPA routing is handled by `frontend/vercel.json`.
-6. If the Vercel URL differs from what you put in `CORS_ALLOW_ORIGIN`, update Render and redeploy the API (or restart so env is picked up).
-
-### Checklist
-
-- [ ] Neon: schema applied (`init.sql`)
-- [ ] Render: `DATABASE_URL` + `CORS_ALLOW_ORIGIN` set; `/health` OK
-- [ ] Vercel: Root = `frontend`; `VITE_API_URL` set; rebuild after changing it
-- [ ] Browser: create user / skill / session without CORS errors
-
----
-
-## Docker (local)
-
-This project runs fully with Docker Compose:
-
-- PostgreSQL with persistent volume `pgdata` and `init.sql`
-- Backend on the internal Docker network
-- Frontend served via Nginx after the Vite build (API proxied to `backend`)
-
-Cloud production does **not** use the frontend Nginx container: Vercel serves the static build and calls Render directly via `VITE_API_URL`.
-
----
-
-## Notes
-
-- Backend is stateless and configured via environment variables.
-- There is no HTTP authentication; user selection is client-side (`localStorage`) — fine for a portfolio demo, not for private multi-tenant production.
-- Designed for local Compose and for Vercel + Render + Neon with minimal code changes.
-
----
-
-## Author
-
-Martin Lavin Carvajal  
-Skill Tracker — Full-stack learning project with Go + React + Docker
+[mlavinc-portfolio.vercel.app/projects/skill-tracker](https://mlavinc-portfolio.vercel.app/projects/skill-tracker)
