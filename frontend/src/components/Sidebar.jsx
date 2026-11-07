@@ -2,12 +2,24 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useUser } from '../context/UserContext';
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { to: '/skills', label: 'Mis Skills', icon: '🎯', end: true },
-  { to: '/skills/nueva', label: 'Nueva Skill', icon: '➕' },
-  { to: '/ranking', label: 'Ranking', icon: '🏆' },
-  { to: '/configuracion', label: 'Configuración', icon: '⚙️' },
+  { to: '/dashboard', label: 'Resumen', icon: 'home' },
+  { to: '/skills', label: 'Habilidades', icon: 'skills', end: true },
+  { to: '/ranking', label: 'Ranking', icon: 'ranking' },
 ];
+
+function NavIcon({ name }) {
+  const paths = {
+    home: <path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M9 20v-6h6v6" />,
+    skills: <path d="M5 6.5h14M5 12h14M5 17.5h9M3 6.5h.01M3 12h.01M3 17.5h.01" />,
+    ranking: <path d="M5 20v-7h4v7M10 20V5h4v15M15 20v-10h4v10" />,
+  };
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="sidebar__icon">
+      {paths[name]}
+    </svg>
+  );
+}
 
 export default function Sidebar() {
   const { user, clearUser } = useUser();
@@ -20,19 +32,10 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar">
-      <div className="sidebar__user">
-        <span
-          className="sidebar__avatar"
-          style={{ backgroundColor: user?.color || '#6c8cff' }}
-          aria-hidden="true"
-        >
-          {user?.nombre?.charAt(0)?.toUpperCase() || '?'}
-        </span>
-        <div>
-          <strong>{user?.nombre}</strong>
-          <span>Usuario activo</span>
-        </div>
-      </div>
+      <NavLink to="/dashboard" className="sidebar__brand" aria-label="Skill Tracker">
+        <span className="sidebar__brand-mark" aria-hidden="true">S</span>
+        <span>Skill Tracker</span>
+      </NavLink>
 
       <nav className="sidebar__nav" aria-label="Navegación principal">
         {NAV_ITEMS.map((item) => (
@@ -44,15 +47,30 @@ export default function Sidebar() {
               `sidebar__link${isActive ? ' sidebar__link--active' : ''}`
             }
           >
-            <span aria-hidden="true">{item.icon}</span>
+            <NavIcon name={item.icon} />
             {item.label}
           </NavLink>
         ))}
       </nav>
 
-      <button type="button" className="sidebar__change-user" onClick={handleChangeUser}>
-        Cambiar usuario
-      </button>
+      <div className="sidebar__account">
+        <div className="sidebar__user">
+          <span
+            className="sidebar__avatar"
+            style={{ backgroundColor: user?.color || '#4f46e5' }}
+            aria-hidden="true"
+          >
+            {user?.nombre?.charAt(0)?.toUpperCase() || '?'}
+          </span>
+          <div>
+            <strong>{user?.nombre}</strong>
+            <span>Perfil activo</span>
+          </div>
+        </div>
+        <button type="button" className="sidebar__change-user" onClick={handleChangeUser}>
+          Cambiar perfil
+        </button>
+      </div>
     </aside>
   );
 }

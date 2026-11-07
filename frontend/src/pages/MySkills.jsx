@@ -13,15 +13,7 @@ import { api } from '../services/api';
 
 export default function MySkills() {
   const { user } = useUser();
-  const {
-    skills,
-    loading,
-    error,
-    fetchSkills,
-    updateSkill,
-    deleteSkill,
-  } = useSkills(user?.id);
-
+  const { skills, loading, error, fetchSkills, updateSkill, deleteSkill } = useSkills(user?.id);
   const [editingSkill, setEditingSkill] = useState(null);
   const [deletingSkill, setDeletingSkill] = useState(null);
   const [sessionSkill, setSessionSkill] = useState(null);
@@ -65,30 +57,25 @@ export default function MySkills() {
     <div className="page">
       <section className="page-header page-header--split">
         <div>
-          <h1>Mis Skills</h1>
-          <p>Gestiona todas tus habilidades de aprendizaje.</p>
+          <span className="eyebrow">Biblioteca</span>
+          <h1>Habilidades</h1>
+          <p>Registra práctica, revisa tu avance y mantén tu foco.</p>
         </div>
-        <div className="page-header__actions">
-          <Link to="/skills/nueva" className="btn btn--primary btn--sm">
-            Nueva skill
-          </Link>
-        </div>
+        <Link to="/skills/nueva" className="btn btn--primary">
+          Nueva habilidad
+        </Link>
       </section>
 
-      {loading && <LoadingSpinner label="Cargando skills..." />}
-
-      {!loading && error && (
-        <ErrorMessage message={error} onRetry={fetchSkills} />
-      )}
+      {loading && <LoadingSpinner label="Cargando habilidades..." />}
+      {!loading && error && <ErrorMessage message={error} onRetry={fetchSkills} />}
 
       {!loading && !error && skills.length === 0 && (
         <EmptyState
-          icon="🚀"
-          title="Aún no tienes skills"
-          description="Crea tu primera habilidad para empezar a trackear tu progreso."
+          title="Aún no tienes habilidades"
+          description="Crea la primera para comenzar a registrar tu progreso."
           action={
-            <Link to="/skills/nueva" className="btn btn--primary btn--sm">
-              Crear skill
+            <Link to="/skills/nueva" className="btn btn--primary">
+              Crear habilidad
             </Link>
           }
         />
@@ -115,7 +102,6 @@ export default function MySkills() {
         onSubmit={handleAddSession}
         submitting={submittingSession}
       />
-
       <EditSkillModal
         skill={editingSkill}
         open={Boolean(editingSkill)}
@@ -123,10 +109,9 @@ export default function MySkills() {
         onSave={handleSave}
         saving={saving}
       />
-
       <ConfirmDialog
         open={Boolean(deletingSkill)}
-        title="Eliminar skill"
+        title="Eliminar habilidad"
         message={`¿Seguro que quieres eliminar "${deletingSkill?.nombre}"? Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
         onConfirm={handleDelete}

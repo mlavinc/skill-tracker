@@ -64,7 +64,7 @@ export default function EditSkillModal({ skill, open, onClose, onSave, saving = 
         aria-labelledby="edit-skill-title"
       >
         <div className="modal__header">
-          <h2 id="edit-skill-title">Editar skill</h2>
+          <h2 id="edit-skill-title">Editar habilidad</h2>
           <button type="button" className="modal__close" onClick={onClose} aria-label="Cerrar">
             ×
           </button>

@@ -11,14 +11,17 @@ export default function ProgressBar({ value, showLabel = true }) {
           <span>{progress}%</span>
         </div>
       )}
-      <div className="progress-bar__track" aria-hidden="true">
+      <div
+        className="progress-bar__track"
+        role="progressbar"
+        aria-label="Progreso"
+        aria-valuenow={progress}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
         <div
           className="progress-bar__fill"
           style={{ width: `${progress}%` }}
-          role="progressbar"
-          aria-valuenow={progress}
-          aria-valuemin={0}
-          aria-valuemax={100}
         />
       </div>
     </div>

@@ -24,8 +24,9 @@ export default function NewSkill() {
     <div className="page">
       <section className="page-header">
         <div>
-          <h1>Nueva Skill</h1>
-          <p>Registra una nueva habilidad que quieras desarrollar.</p>
+          <span className="eyebrow">Nueva</span>
+          <h1>Crear habilidad</h1>
+          <p>Define lo esencial. Podrás registrar la práctica después.</p>
         </div>
       </section>
 

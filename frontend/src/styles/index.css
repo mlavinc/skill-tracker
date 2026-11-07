@@ -1,15 +1,15 @@
-:root {
-  --bg: #f6f7fb;
-  --bg-elevated: #eef1f8;
+﻿:root {
+  --bg: #f7f7f8;
+  --bg-elevated: #f0f1f3;
   --bg-card: #ffffff;
   --bg-hover: #eceff7;
-  --border: #e2e6f0;
-  --border-strong: #d3d9e8;
-  --text: #1f2433;
-  --text-muted: #5a6378;
-  --primary: #5b6ee8;
-  --primary-hover: #4a5cd6;
-  --primary-soft: #eef0fd;
+  --border: #e3e5eb;
+  --border-strong: #d4d7df;
+  --text: #191b22;
+  --text-muted: #6c7385;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-soft: #eeedff;
   --accent: #8b7bf0;
   --danger: #e5707e;
   --danger-hover: #d65968;
@@ -19,10 +19,11 @@
   --info: #2f86b8;
   --radius: 14px;
   --radius-sm: 10px;
-  --shadow: 0 12px 30px rgba(31, 36, 48, 0.08);
+  --shadow: 0 12px 30px rgba(25, 27, 34, 0.07);
   --font: 'DM Sans', system-ui, -apple-system, sans-serif;
   --transition: 180ms ease;
 }
+
 
 *,
 *::before,
@@ -1416,5 +1417,345 @@ p {
   .error-message {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* Focused interface refresh */
+
+body {
+  background: var(--bg);
+}
+
+.app-shell--with-sidebar {
+  grid-template-columns: 232px minmax(0, 1fr);
+}
+
+.app-main {
+  width: 100%;
+  max-width: 1120px;
+  padding: 2.5rem 2rem 4rem;
+}
+
+.page {
+  animation-duration: 220ms;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.page-header {
+  margin-bottom: 1.75rem;
+}
+
+.page-header h1 {
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1.05;
+}
+
+.page-header p {
+  max-width: 560px;
+}
+
+.sidebar {
+  padding: 1.25rem 0.9rem;
+  background: #fff;
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0 0.65rem;
+  margin-bottom: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sidebar__brand-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.sidebar__nav {
+  gap: 0.3rem;
+}
+
+.sidebar__link {
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.65rem 0.75rem;
+}
+
+.sidebar__icon {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sidebar__account {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.sidebar__user {
+  padding: 0.5rem;
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+
+.sidebar__change-user {
+  width: 100%;
+  margin-top: 0.35rem;
+  border-style: solid;
+  text-align: left;
+}
+
+.kpi-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.kpi-card {
+  display: block;
+  padding: 1rem 1.25rem;
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.kpi-card:last-child {
+  border-right: 0;
+}
+
+.kpi-card__value {
+  font-size: 1.55rem;
+}
+
+.dashboard-focus-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(420px, 1.4fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.focus-card,
+.progress-overview {
+  padding: 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+}
+
+.focus-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.focus-card h2,
+.progress-overview h2 {
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.focus-card p {
+  margin-top: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.focus-card__actions {
+  display: flex;
+  gap: 0.55rem;
+  margin-top: auto;
+}
+
+.progress-overview .section-header {
+  margin-bottom: 0.5rem;
+}
+
+.chart-container {
+  min-height: 180px;
+}
+
+.skill-grid {
+  grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+}
+
+.skill-card {
+  box-shadow: none;
+}
+
+.skill-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.skill-card__header {
+  align-items: flex-start;
+}
+
+.skill-card__category {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.skill-card__actions {
+  align-items: center;
+}
+
+.skill-card__manage {
+  display: flex;
+  gap: 0.65rem;
+  margin-left: auto;
+}
+
+.skill-card__manage button {
+  padding: 0.25rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.skill-card__manage button:hover {
+  color: var(--text);
+}
+
+.skill-card__manage .text-danger:hover {
+  color: var(--danger-strong);
+}
+
+.btn:active:not(:disabled),
+.sidebar__link:active,
+.sidebar__change-user:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 960px) {
+  .dashboard-focus-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar__brand {
+    margin: 0 auto 0 0;
+  }
+
+  .sidebar__account {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0;
+    border: 0;
+    order: 2;
+  }
+
+  .sidebar__account .sidebar__user {
+    display: none;
+  }
+
+  .sidebar__change-user {
+    margin: 0;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-main {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .sidebar__brand > span:last-child,
+  .sidebar__change-user {
+    display: none;
+  }
+
+  .sidebar__nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .sidebar__link {
+    min-width: auto;
+    white-space: nowrap;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .kpi-card {
+    padding: 0.85rem 0.75rem;
+  }
+
+  .kpi-card__value {
+    font-size: 1.25rem;
+  }
+
+  .kpi-card__label {
+    font-size: 0.72rem;
+  }
+
+  .focus-card__actions {
+    flex-direction: column;
+  }
+
+  .skill-card__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .skill-card__actions .btn {
+    width: auto;
+    flex: 1;
+  }
+
+  .skill-card__manage {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

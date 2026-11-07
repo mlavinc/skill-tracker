@@ -46,9 +46,9 @@ export default function SessionForm({ onSubmit, submitting = false }) {
 
   return (
     <form className="form-card" onSubmit={handleSubmit}>
-      <h2>Registrar sesión</h2>
+      <h2>Registrar práctica</h2>
       <p className="form-card__subtitle">
-        Documenta tu sesión de práctica y actualiza tu progreso.
+        Guarda el tiempo invertido y el avance que percibiste.
       </p>
 
       {error && <p className="form-error">{error}</p>}
@@ -68,7 +68,7 @@ export default function SessionForm({ onSubmit, submitting = false }) {
         </label>
 
         <label className="form-field">
-          <span>Progreso percibido (%)</span>
+          <span>Progreso actual (%)</span>
           <input
             type="number"
             name="progreso_percibido"
@@ -94,7 +94,7 @@ export default function SessionForm({ onSubmit, submitting = false }) {
       </div>
 
       <button type="submit" className="btn btn--primary" disabled={submitting}>
-        {submitting ? 'Registrando...' : 'Registrar sesión'}
+        {submitting ? 'Registrando...' : 'Guardar práctica'}
       </button>
     </form>
   );

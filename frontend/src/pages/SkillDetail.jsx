@@ -9,7 +9,7 @@ import ProgressBar from '../components/ProgressBar';
 import SessionForm from '../components/SessionForm';
 import SessionList from '../components/SessionList';
 import { useSessions, useSkill } from '../hooks/useSkills';
-import { formatDate, priorityClass, statusClass } from '../utils/format';
+import { formatDate, statusClass } from '../utils/format';
 
 export default function SkillDetail() {
   const { id } = useParams();
@@ -63,7 +63,7 @@ export default function SkillDetail() {
   if (loading) {
     return (
       <div className="page">
-        <LoadingSpinner label="Cargando skill..." />
+        <LoadingSpinner label="Cargando habilidad..." />
       </div>
     );
   }
@@ -72,9 +72,9 @@ export default function SkillDetail() {
     return (
       <div className="page">
         <Link to="/skills" className="back-link">
-          ← Volver a mis skills
+          ← Volver a habilidades
         </Link>
-        <ErrorMessage message={error || 'Skill no encontrada'} onRetry={fetchSkill} />
+        <ErrorMessage message={error || 'Habilidad no encontrada'} onRetry={fetchSkill} />
       </div>
     );
   }
@@ -82,15 +82,12 @@ export default function SkillDetail() {
   return (
     <div className="page skill-detail">
       <Link to="/skills" className="back-link">
-        ← Volver a mis skills
+        ← Volver a habilidades
       </Link>
 
       <section className="skill-detail__hero">
         <div className="skill-detail__hero-content">
           <div className="skill-detail__badges">
-            <span className={`badge ${priorityClass(skill.prioridad)}`}>
-              {skill.prioridad || 'Media'}
-            </span>
             <span className={`badge ${statusClass(skill.estado)}`}>
               {skill.estado || 'Activo'}
             </span>
@@ -123,24 +120,12 @@ export default function SkillDetail() {
 
       <div className="skill-detail__grid">
         <section className="detail-panel">
-          <h2>Información</h2>
+          <h2>Progreso</h2>
           <ProgressBar value={skill.progreso} />
           <dl className="detail-list">
             <div>
-              <dt>Categoría</dt>
-              <dd>{skill.categoria}</dd>
-            </div>
-            <div>
               <dt>Prioridad</dt>
               <dd>{skill.prioridad}</dd>
-            </div>
-            <div>
-              <dt>Estado</dt>
-              <dd>{skill.estado || 'Activo'}</dd>
-            </div>
-            <div>
-              <dt>Progreso</dt>
-              <dd>{skill.progreso ?? 0}%</dd>
             </div>
             <div>
               <dt>Última práctica</dt>
@@ -161,7 +146,7 @@ export default function SkillDetail() {
 
       <section className="detail-panel detail-panel--full">
         <div className="section-header">
-          <h2>Historial de sesiones</h2>
+          <h2>Historial de prácticas</h2>
           <span className="section-header__count">{sessions.length}</span>
         </div>
         <SessionList
@@ -182,7 +167,7 @@ export default function SkillDetail() {
 
       <ConfirmDialog
         open={showDeleteConfirm}
-        title="Eliminar skill"
+        title="Eliminar habilidad"
         message={`¿Seguro que quieres eliminar "${skill.nombre}"? Esta acción no se puede deshacer.`}
         confirmLabel="Eliminar"
         onConfirm={handleDelete}

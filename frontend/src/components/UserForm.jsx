@@ -38,7 +38,7 @@ export default function UserForm({ onSubmit, submitting = false }) {
   return (
     <form className="form-card user-form" onSubmit={handleSubmit}>
       <h2>Crear usuario</h2>
-      <p className="form-card__subtitle">Regístrate para empezar a trackear tus skills.</p>
+      <p className="form-card__subtitle">Crea un perfil para guardar tu progreso.</p>
 
       {error && <p className="form-error">{error}</p>}
 

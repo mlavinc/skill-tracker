@@ -38,9 +38,9 @@ export default function SkillForm({ onSubmit, submitting = false }) {
 
   return (
     <form className="form-card" onSubmit={handleSubmit}>
-      <h2>Nueva skill</h2>
+      <h2>Datos principales</h2>
       <p className="form-card__subtitle">
-        Registra una habilidad que quieras desarrollar.
+        Usa un nombre y una categoría fáciles de reconocer.
       </p>
 
       {error && <p className="form-error">{error}</p>}
@@ -81,7 +81,7 @@ export default function SkillForm({ onSubmit, submitting = false }) {
       </div>
 
       <button type="submit" className="btn btn--primary" disabled={submitting}>
-        {submitting ? 'Creando...' : 'Crear skill'}
+        {submitting ? 'Creando...' : 'Crear habilidad'}
       </button>
     </form>
   );

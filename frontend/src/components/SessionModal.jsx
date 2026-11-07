@@ -13,7 +13,7 @@ export default function SessionModal({ skill, open, onClose, onSubmit, submittin
         aria-labelledby="session-modal-title"
       >
         <div className="modal__header">
-          <h2 id="session-modal-title">Registrar sesión · {skill.nombre}</h2>
+          <h2 id="session-modal-title">Nueva práctica · {skill.nombre}</h2>
           <button type="button" className="modal__close" onClick={onClose} aria-label="Cerrar">
             ×
           </button>

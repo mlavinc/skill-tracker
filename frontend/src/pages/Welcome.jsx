@@ -63,7 +63,7 @@ export default function Welcome() {
             <EmptyState
               icon="👋"
               title="No hay usuarios"
-              description="Crea el primer usuario para empezar a trackear skills."
+              description="Crea el primer perfil para comenzar a registrar habilidades."
             />
           )}
 

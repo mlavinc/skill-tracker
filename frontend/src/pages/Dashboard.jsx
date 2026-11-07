@@ -1,21 +1,17 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import AdvancedMetrics from '../components/AdvancedMetrics';
-import CategoryPieChart from '../components/CategoryPieChart';
 import DashboardKPIs from '../components/DashboardKPIs';
 import EmptyState from '../components/EmptyState';
 import ErrorMessage from '../components/ErrorMessage';
-import LeaderboardWidget from '../components/LeaderboardWidget';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ProgressBar from '../components/ProgressBar';
 import SessionModal from '../components/SessionModal';
-import SkillCard from '../components/SkillCard';
 import SkillsProgressChart from '../components/SkillsProgressChart';
 import { useUser } from '../context/UserContext';
 import { useSkills } from '../hooks/useSkills';
-import { useRanking, useUserStats } from '../hooks/useUsers';
+import { useUserStats } from '../hooks/useUsers';
 import { api } from '../services/api';
-
-const FEATURED_LIMIT = 3;
+import { formatDate } from '../utils/format';
 
 function practiceTimestamp(skill) {
   const raw = skill?.ultima_practica;
@@ -24,48 +20,40 @@ function practiceTimestamp(skill) {
   return Number.isNaN(time) ? 0 : time;
 }
 
-function getFeaturedSkills(skills, limit = FEATURED_LIMIT) {
-  return [...skills]
-    .sort((a, b) => {
-      const byPractice = practiceTimestamp(b) - practiceTimestamp(a);
-      if (byPractice !== 0) return byPractice;
-      return (b.progreso ?? 0) - (a.progreso ?? 0);
-    })
-    .slice(0, limit);
+function pickFocusSkill(skills) {
+  const activeSkills = skills.filter(
+    (skill) => !String(skill.estado ?? '').toLowerCase().includes('complet')
+  );
+  const candidates = activeSkills.length > 0 ? activeSkills : skills;
+
+  return [...candidates].sort((a, b) => {
+    const byPractice = practiceTimestamp(a) - practiceTimestamp(b);
+    if (byPractice !== 0) return byPractice;
+    return (a.progreso ?? 0) - (b.progreso ?? 0);
+  })[0];
 }
 
 export default function Dashboard() {
   const { user } = useUser();
   const { skills, loading, error, fetchSkills } = useSkills(user?.id);
-
   const {
     stats: userStats,
     loading: statsLoading,
     error: statsError,
     fetchStats,
   } = useUserStats(user?.id);
-  const {
-    ranking,
-    loading: rankingLoading,
-    error: rankingError,
-    fetchRanking,
-  } = useRanking();
 
   const [sessionSkill, setSessionSkill] = useState(null);
   const [submittingSession, setSubmittingSession] = useState(false);
-
-  const featuredSkills = useMemo(
-    () => getFeaturedSkills(skills, FEATURED_LIMIT),
-    [skills]
-  );
+  const focusSkill = useMemo(() => pickFocusSkill(skills), [skills]);
+  const firstName = user?.nombre?.trim().split(/\s+/)[0] || 'de nuevo';
 
   const handleAddSession = async (payload) => {
     if (!sessionSkill) return;
     setSubmittingSession(true);
     try {
       await api.createSession(sessionSkill.id, payload);
-      await fetchSkills();
-      await fetchStats();
+      await Promise.all([fetchSkills(), fetchStats()]);
       setSessionSkill(null);
     } finally {
       setSubmittingSession(false);
@@ -76,92 +64,72 @@ export default function Dashboard() {
     <div className="page dashboard">
       <section className="page-header page-header--split">
         <div>
-          <h1>Hola, {user?.nombre}</h1>
-          <p>
-            Resumen de tu progreso y actividad reciente.
-            Gestiona el detalle en{' '}
-            <Link to="/skills">Mis Skills</Link>.
-          </p>
+          <span className="eyebrow">Resumen</span>
+          <h1>Hola, {firstName}</h1>
+          <p>Un vistazo claro a tu avance y a tu siguiente práctica.</p>
         </div>
-        <div className="page-header__actions">
-          <Link to="/skills/nueva" className="btn btn--primary btn--sm">
-            Nueva skill
-          </Link>
-          <Link to="/skills" className="btn btn--ghost btn--sm">
-            Ver todas
-          </Link>
-        </div>
+        <Link to="/skills/nueva" className="btn btn--primary">
+          Nueva habilidad
+        </Link>
       </section>
 
-      <section className="dashboard-analytics" aria-label="Resumen de progreso">
-        <h2 className="dashboard-analytics__title">Tu progreso</h2>
-        {statsError && <ErrorMessage message={statsError} onRetry={fetchStats} />}
-        <DashboardKPIs stats={userStats} loading={statsLoading} />
-        <AdvancedMetrics stats={userStats} skills={skills} />
+      {statsError && <ErrorMessage message={statsError} onRetry={fetchStats} />}
+      <DashboardKPIs stats={userStats} loading={statsLoading} />
 
-        <div className="dashboard-charts">
-          <article className="chart-panel detail-panel">
-            <h3>Progreso por skill</h3>
+      {loading && <LoadingSpinner label="Cargando tu progreso..." />}
+      {!loading && error && <ErrorMessage message={error} onRetry={fetchSkills} />}
+
+      {!loading && !error && skills.length === 0 && (
+        <EmptyState
+          title="Crea tu primera habilidad"
+          description="Define qué quieres aprender y registra cada práctica en un solo lugar."
+          action={
+            <Link to="/skills/nueva" className="btn btn--primary">
+              Crear habilidad
+            </Link>
+          }
+        />
+      )}
+
+      {!loading && !error && focusSkill && (
+        <section className="dashboard-focus-grid" aria-label="Enfoque y progreso">
+          <article className="focus-card">
+            <div>
+              <span className="eyebrow">Siguiente enfoque</span>
+              <h2>{focusSkill.nombre}</h2>
+              <p>
+                {focusSkill.categoria} · Última práctica: {formatDate(focusSkill.ultima_practica)}
+              </p>
+            </div>
+            <ProgressBar value={focusSkill.progreso} />
+            <div className="focus-card__actions">
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => setSessionSkill(focusSkill)}
+              >
+                Registrar práctica
+              </button>
+              <Link to={`/skills/${focusSkill.id}`} className="btn btn--ghost">
+                Ver detalle
+              </Link>
+            </div>
+          </article>
+
+          <article className="chart-panel detail-panel progress-overview">
+            <div className="section-header">
+              <div>
+                <span className="eyebrow">Comparación</span>
+                <h2>Progreso por habilidad</h2>
+              </div>
+              <Link to="/skills" className="section-header__link">
+                Ver todas
+              </Link>
+            </div>
             <SkillsProgressChart skills={skills} />
           </article>
-          <article className="chart-panel detail-panel">
-            <h3>Distribución por categoría</h3>
-            <CategoryPieChart skills={skills} />
-          </article>
-          <article className="chart-panel detail-panel">
-            <h3>Top 3 — Leaderboard</h3>
-            <LeaderboardWidget
-              ranking={ranking}
-              loading={rankingLoading}
-              error={rankingError}
-              onRetry={fetchRanking}
-              activeUserId={user?.id}
-            />
-          </article>
-        </div>
-      </section>
-
-      <section className="dashboard-featured" aria-label="Actividad reciente">
-        <div className="section-header">
-          <h2>Actividad reciente</h2>
-          {skills.length > 0 && (
-            <Link to="/skills" className="section-header__link">
-              Ver todas ({skills.length})
-            </Link>
-          )}
-        </div>
-
-        {loading && <LoadingSpinner label="Cargando skills..." />}
-
-        {!loading && error && (
-          <ErrorMessage message={error} onRetry={fetchSkills} />
-        )}
-
-        {!loading && !error && skills.length === 0 && (
-          <EmptyState
-            icon="🚀"
-            title="Aún no tienes skills"
-            description="Crea tu primera skill para empezar a trackear tu progreso."
-            action={
-              <Link to="/skills/nueva" className="btn btn--primary btn--sm">
-                Crear skill
-              </Link>
-            }
-          />
-        )}
-
-        {!loading && !error && featuredSkills.length > 0 && (
-          <div className="skill-grid">
-            {featuredSkills.map((skill) => (
-              <SkillCard
-                key={skill.id}
-                skill={skill}
-                onAddSession={setSessionSkill}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <SessionModal
         skill={sessionSkill}

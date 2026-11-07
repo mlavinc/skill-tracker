@@ -17,7 +17,7 @@ export default function SessionList({ sessions, loading, error, onRetry }) {
       <EmptyState
         icon="📋"
         title="Sin sesiones registradas"
-        description="Registra tu primera sesión de práctica para empezar a trackear tu progreso."
+        description="Registra tu primera práctica para comenzar a medir tu progreso."
       />
     );
   }
