@@ -1,4 +1,3 @@
-import { getMedal } from '../utils/format';
 import EmptyState from '../components/EmptyState';
 import ErrorMessage from '../components/ErrorMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -11,68 +10,34 @@ export default function Ranking() {
 
   return (
     <div className="page ranking-page">
-      <section className="page-header">
-        <div>
-          <h1>Ranking</h1>
-          <p>Compite amistosamente con otros usuarios por puntos de aprendizaje.</p>
-        </div>
-      </section>
+      <header className="page-header">
+        <span className="eyebrow">Progreso compartido</span>
+        <h1>Ranking</h1>
+        <p>Una referencia ligera del avance acumulado por cada perfil.</p>
+      </header>
 
       {loading && <LoadingSpinner label="Cargando ranking..." />}
-
-      {!loading && error && (
-        <ErrorMessage message={error} onRetry={fetchRanking} />
-      )}
-
+      {!loading && error && <ErrorMessage message={error} onRetry={fetchRanking} />}
       {!loading && !error && ranking.length === 0 && (
-        <EmptyState
-          icon="🏆"
-          title="Ranking vacío"
-          description="Cuando los usuarios acumulen puntos, aparecerán aquí."
-        />
+        <EmptyState title="Todavía no hay posiciones" description="El ranking aparecerá cuando existan habilidades con progreso." />
       )}
 
       {!loading && !error && ranking.length > 0 && (
-        <div className="ranking-table">
-          <div className="ranking-table__header">
-            <span>Posición</span>
-            <span>Usuario</span>
-            <span>Puntos</span>
-          </div>
-          <ul className="ranking-table__list">
-            {ranking.map((entry) => {
-              const medal = getMedal(entry.posicion);
-              const isActive = entry.user_id === user?.id;
-
-              return (
-                <li
-                  key={entry.user_id}
-                  className={`ranking-row${isActive ? ' ranking-row--active' : ''}`}
-                >
-                  <span className="ranking-row__position">
-                    {medal ? (
-                      <span className="ranking-row__medal">{medal}</span>
-                    ) : (
-                      `#${entry.posicion}`
-                    )}
-                  </span>
-                  <span className="ranking-row__user">
-                    <span
-                      className="ranking-row__color"
-                      style={{ backgroundColor: entry.color }}
-                      aria-hidden="true"
-                    />
-                    <span>
-                      {entry.nombre}
-                      {isActive && <em className="ranking-row__you"> (Tú)</em>}
-                    </span>
-                  </span>
-                  <span className="ranking-row__points">{entry.puntos} pts</span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        <ol className="ranking-list">
+          {ranking.map((entry) => {
+            const isActive = entry.user_id === user?.id;
+            return (
+              <li key={entry.user_id} className={`ranking-card${isActive ? ' ranking-card--active' : ''}`}>
+                <span className="ranking-card__position">{String(entry.posicion).padStart(2, '0')}</span>
+                <span className="ranking-card__avatar" style={{ backgroundColor: entry.color }} aria-hidden="true">
+                  {entry.nombre.charAt(0).toUpperCase()}
+                </span>
+                <span className="ranking-card__name">{entry.nombre}{isActive && <small>Tú</small>}</span>
+                <span className="ranking-card__points">{entry.puntos}<small>puntos</small></span>
+              </li>
+            );
+          })}
+        </ol>
       )}
     </div>
   );

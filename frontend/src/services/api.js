@@ -1,23 +1,54 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? '';
+const RETRY_DELAYS = [450, 900];
 
-async function request(url, options = {}) {
-  const response = await fetch(`${API_BASE}${url}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function getErrorMessage(response) {
+  const contentType = response.headers.get('content-type') ?? '';
+
+  if (contentType.includes('application/json')) {
+    const payload = await response.json().catch(() => null);
+    if (payload?.error) return payload.error;
+  }
+
+  return (await response.text().catch(() => '')) || `Error ${response.status}`;
+}
+
+async function request(url, options = {}, attempt = 0) {
+  const method = options.method ?? 'GET';
+  let response;
+
+  try {
+    response = await fetch(`${API_BASE}${url}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+  } catch (error) {
+    const canRetry = method === 'GET' && attempt < RETRY_DELAYS.length;
+    if (canRetry) {
+      await wait(RETRY_DELAYS[attempt]);
+      return request(url, options, attempt + 1);
+    }
+
+    throw error;
+  }
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Error ${response.status}`);
+    const canRetry = method === 'GET' && response.status >= 500 && attempt < RETRY_DELAYS.length;
+    if (canRetry) {
+      await wait(RETRY_DELAYS[attempt]);
+      return request(url, options, attempt + 1);
+    }
+
+    throw new Error(await getErrorMessage(response));
   }
 
-  if (response.status === 204) {
-    return null;
-  }
-
+  if (response.status === 204) return null;
   return response.json();
 }
 

@@ -55,16 +55,16 @@ export default function MySkills() {
 
   return (
     <div className="page">
-      <section className="page-header page-header--split">
+      <header className="page-header page-header--split">
         <div>
-          <span className="eyebrow">Biblioteca</span>
+          <span className="eyebrow">Tu biblioteca · {skills.length}</span>
           <h1>Habilidades</h1>
-          <p>Registra práctica, revisa tu avance y mantén tu foco.</p>
+          <p>Todo lo que estás desarrollando, sin ruido alrededor.</p>
         </div>
         <Link to="/skills/nueva" className="btn btn--primary">
           Nueva habilidad
         </Link>
-      </section>
+      </header>
 
       {loading && <LoadingSpinner label="Cargando habilidades..." />}
       {!loading && error && <ErrorMessage message={error} onRetry={fetchSkills} />}
@@ -82,7 +82,7 @@ export default function MySkills() {
       )}
 
       {!loading && !error && skills.length > 0 && (
-        <div className="skill-grid">
+        <div className="skill-list">
           {skills.map((skill) => (
             <SkillCard
               key={skill.id}

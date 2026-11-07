@@ -1,10 +1,10 @@
 import { clampProgress } from '../utils/format';
 
-export default function ProgressBar({ value, showLabel = true }) {
+export default function ProgressBar({ value, showLabel = true, tone = 'default' }) {
   const progress = clampProgress(value);
 
   return (
-    <div className="progress-bar">
+    <div className={`progress-bar progress-bar--${tone}`}>
       {showLabel && (
         <div className="progress-bar__header">
           <span>Progreso</span>

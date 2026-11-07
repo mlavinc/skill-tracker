@@ -15,12 +15,10 @@ export default function Welcome() {
   const [submitting, setSubmitting] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
 
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  if (user) return <Navigate to="/dashboard" replace />;
 
-  const handleSelect = (user) => {
-    selectUser(user);
+  const handleSelect = (nextUser) => {
+    selectUser(nextUser);
     navigate('/dashboard');
   };
 
@@ -36,52 +34,49 @@ export default function Welcome() {
   };
 
   return (
-    <div className="welcome-page">
-      <div className="welcome-page__hero">
-        <span className="welcome-page__logo">◆</span>
-        <h1>Skill Tracker</h1>
-        <p>Selecciona tu perfil o crea uno nuevo para comenzar.</p>
-      </div>
+    <main className="welcome-page">
+      <section className="welcome-page__hero">
+        <div className="welcome-page__brand"><span>ST</span> Skill Tracker</div>
+        <div>
+          <span className="eyebrow eyebrow--on-dark">Aprender también es avanzar</span>
+          <h1>Convierte la práctica en progreso visible.</h1>
+          <p>Elige una habilidad, registra el esfuerzo y mantén claro qué sigue.</p>
+        </div>
+        <div className="welcome-page__steps" aria-label="Cómo funciona">
+          <span>01 · Elige</span><span>02 · Practica</span><span>03 · Avanza</span>
+        </div>
+      </section>
 
-      <div className="welcome-page__content">
-        <section className="welcome-section">
+      <section className="welcome-page__content">
+        <div className="welcome-section">
           <div className="section-header">
-            <h2>Usuarios existentes</h2>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={() => setShowCreate((prev) => !prev)}
-            >
-              {showCreate ? 'Ocultar formulario' : '+ Crear usuario'}
+            <div>
+              <span className="eyebrow">Entrar</span>
+              <h2>Selecciona tu perfil</h2>
+            </div>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => setShowCreate((value) => !value)}>
+              {showCreate ? 'Volver a perfiles' : 'Crear perfil'}
             </button>
           </div>
 
-          {loading && <LoadingSpinner label="Cargando usuarios..." />}
-          {!loading && error && <ErrorMessage message={error} onRetry={fetchUsers} />}
-
-          {!loading && !error && users.length === 0 && (
-            <EmptyState
-              icon="👋"
-              title="No hay usuarios"
-              description="Crea el primer perfil para comenzar a registrar habilidades."
-            />
-          )}
-
-          {!loading && !error && users.length > 0 && (
-            <div className="user-grid">
-              {users.map((user) => (
-                <UserCard key={user.id} user={user} onSelect={handleSelect} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {showCreate && (
-          <section className="welcome-section">
+          {showCreate ? (
             <UserForm onSubmit={handleCreate} submitting={submitting} />
-          </section>
-        )}
-      </div>
-    </div>
+          ) : (
+            <>
+              {loading && <LoadingSpinner label="Cargando perfiles..." />}
+              {!loading && error && <ErrorMessage message={error} onRetry={fetchUsers} />}
+              {!loading && !error && users.length === 0 && (
+                <EmptyState title="Aún no hay perfiles" description="Crea el primero para comenzar." />
+              )}
+              {!loading && !error && users.length > 0 && (
+                <div className="user-grid">
+                  {users.map((item) => <UserCard key={item.id} user={item} onSelect={handleSelect} />)}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+    </main>
   );
 }

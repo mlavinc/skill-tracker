@@ -38,12 +38,12 @@ export default function SkillsProgressChart({ skills }) {
           layout="vertical"
           margin={{ top: 4, right: 18, left: 8, bottom: 4 }}
         >
-          <CartesianGrid horizontal={false} stroke="rgba(31,36,48,0.08)" />
+          <CartesianGrid horizontal={false} stroke="rgba(148,163,184,0.10)" />
           <XAxis
             type="number"
             domain={[0, 100]}
             tickFormatter={(value) => `${value}%`}
-            tick={{ fill: '#6c7385', fontSize: 11 }}
+            tick={{ fill: '#7f8a9d', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
@@ -51,22 +51,22 @@ export default function SkillsProgressChart({ skills }) {
             type="category"
             dataKey="name"
             width={118}
-            tick={{ fill: '#333746', fontSize: 12 }}
+            tick={{ fill: '#d7dee9', fontSize: 12 }}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip
-            cursor={{ fill: 'rgba(79, 70, 229, 0.05)' }}
+            cursor={{ fill: 'rgba(94, 234, 212, 0.06)' }}
             contentStyle={{
-              background: '#ffffff',
-              border: '1px solid #e3e5eb',
+              background: '#171d29',
+              border: '1px solid #2a3445',
               borderRadius: '10px',
-              color: '#191b22',
+              color: '#f4f7fb',
             }}
             labelFormatter={(_, payload) => payload?.[0]?.payload?.fullName ?? ''}
             formatter={(value) => [`${value}%`, 'Progreso']}
           />
-          <Bar dataKey="progreso" fill="#4f46e5" radius={[0, 6, 6, 0]} barSize={16} />
+          <Bar dataKey="progreso" fill="#5eead4" radius={[0, 6, 6, 0]} barSize={14} />
         </BarChart>
       </ResponsiveContainer>
     </div>

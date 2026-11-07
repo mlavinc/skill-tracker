@@ -47,7 +47,6 @@ export function useUserStats(userId) {
       setStats(data);
     } catch (err) {
       setError(err.message);
-      setStats(null);
     } finally {
       setLoading(false);
     }

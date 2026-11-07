@@ -1,6 +1,4 @@
-import AdvancedMetrics from '../components/AdvancedMetrics';
 import DashboardKPIs from '../components/DashboardKPIs';
-import ErrorMessage from '../components/ErrorMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useUser } from '../context/UserContext';
 import { useSkills } from '../hooks/useSkills';
@@ -10,66 +8,40 @@ import { formatDate, getEstimatedLevel } from '../utils/format';
 export default function Settings() {
   const { user } = useUser();
   const { skills, loading: skillsLoading } = useSkills(user?.id);
-  const { stats, loading: statsLoading, error, fetchStats } = useUserStats(user?.id);
+  const { stats, loading: statsLoading } = useUserStats(user?.id);
+  const average = skills.length
+    ? Math.round(skills.reduce((sum, skill) => sum + (skill.progreso ?? 0), 0) / skills.length)
+    : 0;
+  const displayStats = stats ?? {
+    total_skills: skills.length,
+    progreso_promedio: average,
+  };
 
-  const loading = skillsLoading || statsLoading;
+  if (skillsLoading && statsLoading) return <LoadingSpinner label="Cargando perfil..." />;
 
   return (
     <div className="page">
-      <section className="page-header">
-        <div>
-          <h1>Configuración</h1>
-          <p>Información de tu perfil y resumen de actividad.</p>
+      <header className="page-header">
+        <span className="eyebrow">Tu espacio</span>
+        <h1>Perfil</h1>
+        <p>Identidad local y resumen de tu actividad.</p>
+      </header>
+
+      <section className="settings-profile panel">
+        <span className="settings-profile__avatar" style={{ backgroundColor: user?.color }}>
+          {user?.nombre?.charAt(0)?.toUpperCase()}
+        </span>
+        <div className="settings-profile__identity">
+          <h2>{user?.nombre}</h2>
+          <p>Perfil #{user?.id} · Desde {formatDate(user?.creado_en)}</p>
+        </div>
+        <div className="settings-profile__level">
+          <span>Nivel estimado</span>
+          <strong>{getEstimatedLevel(displayStats.progreso_promedio)}</strong>
         </div>
       </section>
 
-      {loading && <LoadingSpinner label="Cargando configuración..." />}
-      {!loading && error && <ErrorMessage message={error} onRetry={fetchStats} />}
-
-      {!loading && !error && (
-        <>
-          <section className="settings-profile detail-panel">
-            <div className="settings-profile__header">
-              <span
-                className="settings-profile__avatar"
-                style={{ backgroundColor: user?.color }}
-              >
-                {user?.nombre?.charAt(0)?.toUpperCase()}
-              </span>
-              <div>
-                <h2>{user?.nombre}</h2>
-                <p>Miembro desde {formatDate(user?.creado_en)}</p>
-              </div>
-            </div>
-            <dl className="detail-list">
-              <div>
-                <dt>Color de perfil</dt>
-                <dd>
-                  <span
-                    className="settings-profile__color-swatch"
-                    style={{ backgroundColor: user?.color }}
-                  />
-                  {user?.color}
-                </dd>
-              </div>
-              <div>
-                <dt>Nivel estimado</dt>
-                <dd>{getEstimatedLevel(stats?.progreso_promedio)}</dd>
-              </div>
-              <div>
-                <dt>ID de usuario</dt>
-                <dd>#{user?.id}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section className="settings-section">
-            <h2>Resumen de actividad</h2>
-            <DashboardKPIs stats={stats} loading={false} />
-            <AdvancedMetrics stats={stats} skills={skills} />
-          </section>
-        </>
-      )}
+      <DashboardKPIs stats={displayStats} loading={false} />
     </div>
   );
 }

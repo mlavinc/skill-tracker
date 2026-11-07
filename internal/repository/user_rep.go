@@ -124,30 +124,25 @@ func (r *UserRepository) GetStats(userID int) (*models.UserStats, error) {
 
 	err := r.DB.QueryRow(`
 		SELECT
-			COUNT(*) AS total_skills,
-			COALESCE(ROUND(AVG(progreso)), 0)
-		FROM skills
-		WHERE user_id = $1
+			(SELECT COUNT(*)::int
+			 FROM skills
+			 WHERE user_id = $1) AS total_skills,
+			(SELECT COALESCE(COUNT(sp.id), 0)::int
+			 FROM sesiones_practica sp
+			 INNER JOIN skills s ON sp.skill_id = s.id
+			 WHERE s.user_id = $1) AS total_sesiones,
+			(SELECT COALESCE(SUM(sp.duracion_minutos), 0)::int
+			 FROM sesiones_practica sp
+			 INNER JOIN skills s ON sp.skill_id = s.id
+			 WHERE s.user_id = $1) AS total_minutos,
+			(SELECT COALESCE(ROUND(AVG(progreso)), 0)::int
+			 FROM skills
+			 WHERE user_id = $1) AS progreso_promedio
 	`, userID).Scan(
 		&stats.TotalSkills,
-		&stats.ProgresoPromedio,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.DB.QueryRow(`
-		SELECT
-			COUNT(*),
-			COALESCE(SUM(sp.duracion_minutos), 0)
-		FROM sesiones_practica sp
-		INNER JOIN skills s
-			ON sp.skill_id = s.id
-		WHERE s.user_id = $1
-	`, userID).Scan(
 		&stats.TotalSesiones,
 		&stats.TotalMinutos,
+		&stats.ProgresoPromedio,
 	)
 
 	if err != nil {
